@@ -52,6 +52,7 @@ import org.bouncycastle.util.Store;
 
 import javax.mail.Address;
 import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -106,13 +107,15 @@ public class MailSigner {
             Address[] from = mimeMessage.getFrom();
 
 
-            Optional<String> signingAddress = Arrays.stream(from).map(Address::toString).filter(address -> {
-                try {
-                    return keyStore.containsAlias(address);
-                } catch (KeyStoreException e) {
-                    return false;
-                }
-            }).findFirst();
+            Optional<String> signingAddress = Arrays.stream(from)
+            		.map(address -> address instanceof InternetAddress ? ((InternetAddress)address).getAddress() : address.toString())
+            		.filter(address -> {
+		                try {
+		                    return keyStore.containsAlias(address);
+		                } catch (KeyStoreException e) {
+		                    return false;
+		                }
+		            }).findFirst();
 
             if(signingAddress.isPresent()) {
                 String alias = signingAddress.get();
